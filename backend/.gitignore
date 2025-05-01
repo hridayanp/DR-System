@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+
+# FastAPI
+*.log
+
+# Environment Variables
+.env
+
+# Virtual environment
+env/
+venv/
+.venv/
+
+# Redis/RQ
+*.rdb
+
+# Docker
+*.db
+
+# VS Code
+.vscode/
+
+# MacOS
+.DS_Store
+
+# Docker-related files
+docker-compose.override.yml
