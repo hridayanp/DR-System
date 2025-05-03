@@ -1,26 +1,27 @@
 # app/main.py
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from app.db.db import engine
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy import text
+from app.db.db import engine, Base
+from app.api.v1.auth.routes import router as auth_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # ✅ Startup: Check DB connection
+    # Startup actions
     try:
         async with engine.begin() as conn:
-            await conn.execute(text("SELECT 1"))
-        print("✅ Database connected successfully.")
-    except SQLAlchemyError as e:
-        print("❌ Database connection failed:", str(e))
-    
-    yield  # Let the app run
-    
-    # 🔻 Shutdown (optional): You can add cleanup code here
-    print("🛑 App is shutting down...")
+            await conn.run_sync(Base.metadata.create_all)
+        print("✅ DB connected and tables created")
+    except Exception as e:
+        print("❌ DB connection failed:", e)
+    yield
+    # Shutdown actions (if any)
+    print("👋 Shutting down")
 
+# FastAPI app with lifespan
 app = FastAPI(lifespan=lifespan)
+
+# Register routes
+app.include_router(auth_router)
 
 @app.get("/")
 async def root():
