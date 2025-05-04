@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.models.user import User
 from app.core.security import hash_password, verify_password, create_access_token, create_refresh_token
-from app.api.v1.auth.schemas import UserCreate, UserLogin
+from app.api.v1.auth.schemas import UserCreate, UserLogin, RoleUpdate
 from fastapi import HTTPException, status
 
 async def create_user(user_data: UserCreate, db: AsyncSession):
@@ -10,12 +10,13 @@ async def create_user(user_data: UserCreate, db: AsyncSession):
     existing_user = result.scalar_one_or_none()
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-    
+
     new_user = User(
         first_name=user_data.first_name,
         last_name=user_data.last_name,
         email=user_data.email,
-        hashed_password=hash_password(user_data.password)
+        hashed_password=hash_password(user_data.password),
+        role="Customer"  # ✅ Force default role
     )
     db.add(new_user)
     await db.commit()
@@ -31,3 +32,15 @@ async def authenticate_user(user_data: UserLogin, db: AsyncSession):
     access_token = create_access_token({'sub': user.email})
     refresh_token = create_refresh_token({'sub': user.email})
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
+
+async def update_user_role(data: RoleUpdate, db: AsyncSession):
+    result = await db.execute(select(User).where(User.id == data.id, User.email == data.email))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.role = data.role
+    await db.commit()
+    await db.refresh(user)
+    return user
