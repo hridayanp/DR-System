@@ -5,6 +5,8 @@ from app.db.db import engine, Base
 from app.api.v1.auth.routes import router as auth_router
 from app.api.v1.admin.users.routes import router as admin_user_router
 from app.api.v1.profile.routes import router as profile_router
+from app.api.v1.db_connect.routes import router as db_connect_router
+
 
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -39,6 +41,7 @@ app.add_exception_handler(Exception, generic_exception_handler)
 app.include_router(auth_router)
 app.include_router(admin_user_router)
 app.include_router(profile_router)
+app.include_router(db_connect_router)
 
 @app.get("/")
 async def root():
